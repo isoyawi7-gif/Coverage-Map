@@ -78,7 +78,6 @@ button {
 /* ================= STATUS ================= */
 #fileStatus {
     color: green;
-    font-size: 14px;
 }
 
 /* ================= PAGE ================= */
@@ -114,19 +113,14 @@ footer {
         margin-top: 10px;
     }
 
-    .container {
-        width: 95%;
-    }
-
     input, button {
         width: 95%;
         display: block;
         margin: 10px auto;
     }
 
-    .page {
-        width: 100%;
-        padding: 10px;
+    .container {
+        width: 95%;
     }
 }
 
@@ -135,17 +129,15 @@ footer {
 
 <body>
 
-<!-- ================= HEADER ================= -->
 <header>
     <div>
         <h1>📄 Iso Yawi Document Converter</h1>
-        <p>DOCX → PDF • Clean Web Converter</p>
+        <p>DOCX → PDF • Smart Preview System</p>
     </div>
 
     <img src="images.jfif" alt="Profile">
 </header>
 
-<!-- ================= MAIN ================= -->
 <div class="container">
 
     <h3>Upload Document (.docx)</h3>
@@ -154,77 +146,96 @@ footer {
 
     <p id="fileStatus"></p>
 
-    <button id="previewBtn" onclick="loadDoc()" disabled>Preview Document</button>
+    <button onclick="loadDoc()">Preview Document</button>
     <button onclick="exportPDF()">Export PDF</button>
 
     <div id="pages"></div>
 
 </div>
 
-<!-- ================= FOOTER ================= -->
 <footer>
     © 2026 Iso Yawi | Papua New Guinea University of Technology  
     <br>
     Electrical Engineering • Document Converter System  
-    <br>
-    Building Cool Projects for Students
 </footer>
 
 <script>
 
-let pagesContainer = document.getElementById("pages");
 let selectedFile = null;
+let pagesContainer = document.getElementById("pages");
 
 /* ================= HANDLE UPLOAD ================= */
 function handleUpload() {
 
     const file = document.getElementById("fileInput").files[0];
-    const status = document.getElementById("fileStatus");
-    const previewBtn = document.getElementById("previewBtn");
 
     if (!file) return;
 
     selectedFile = file;
 
-    status.innerHTML = "✅ Uploaded: " + file.name;
-    previewBtn.disabled = false;
+    document.getElementById("fileStatus").innerHTML =
+        "✅ Uploaded: " + file.name;
 }
 
-/* ================= LOAD DOCX ================= */
+/* ================= PREVIEW ================= */
 async function loadDoc() {
 
     if (!selectedFile) {
-        alert("Upload a DOCX file first");
+        alert("Upload file first");
         return;
     }
 
-    const buffer = await selectedFile.arrayBuffer();
+    pagesContainer.innerHTML = "⏳ Loading preview...";
 
-    pagesContainer.innerHTML = "";
+    try {
 
-    const temp = document.createElement("div");
+        const buffer = await selectedFile.arrayBuffer();
 
-    await docx.renderAsync(buffer, temp, null, {
-        inWrapper: true
-    });
+        const temp = document.createElement("div");
 
-    let page = document.createElement("div");
-    page.className = "page";
-    page.innerHTML = temp.innerHTML;
+        await docx.renderAsync(buffer, temp);
 
-    pagesContainer.appendChild(page);
+        if (!temp.innerHTML || temp.innerHTML.trim() === "") {
+
+            pagesContainer.innerHTML = `
+                <div class="page">
+                    <p>⚠️ Preview not supported for this document.</p>
+                    <p>Click <b>Export PDF</b> instead.</p>
+                </div>
+            `;
+
+        } else {
+
+            let page = document.createElement("div");
+            page.className = "page";
+            page.innerHTML = temp.innerHTML;
+
+            pagesContainer.innerHTML = "";
+            pagesContainer.appendChild(page);
+        }
+
+    } catch (error) {
+
+        pagesContainer.innerHTML = `
+            <div class="page">
+                <p style="color:red;">⚠️ Preview failed</p>
+                <p>This document may contain complex formatting or images.</p>
+                <p>Please use Export PDF.</p>
+            </div>
+        `;
+    }
 }
 
 /* ================= EXPORT PDF ================= */
 async function exportPDF() {
 
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("p", "mm", "a4");
+    const pdf = new jsPDF();
 
     let page = document.querySelector(".page");
 
     if (!page) {
-        alert("No document loaded");
+        alert("Preview first before exporting");
         return;
     }
 
@@ -232,14 +243,13 @@ async function exportPDF() {
         x: 10,
         y: 10,
         width: 180,
-        html2canvas: { scale: 0.8 },
         callback: function (doc) {
 
+            doc.setFontSize(25);
             doc.setTextColor(180);
-            doc.setFontSize(28);
-            doc.text("Iso Yawi PDF Converter", 30, 150, { angle: 45 });
+            doc.text("Iso Yawi Converter", 30, 150, { angle: 45 });
 
-            doc.save("Converted_Document.pdf");
+            doc.save("Converted.pdf");
         }
     });
 }
