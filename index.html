@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Pro Document Converter System</title>
 
-<!-- DOCX RENDER ENGINE -->
+<!-- DOCX ENGINE -->
 <script src="https://unpkg.com/docx-preview@0.2.0/dist/docx-preview.js"></script>
 
 <!-- PDF ENGINE -->
@@ -16,7 +16,7 @@
 body {
     margin: 0;
     font-family: Arial;
-    background: #f5f7fa;
+    background: #e9eef5;
     color: #111827;
 }
 
@@ -50,7 +50,7 @@ header img {
 
 /* ================= CONTAINER ================= */
 .container {
-    width: 90%;
+    width: 85%;
     margin: auto;
     margin-top: 20px;
     background: white;
@@ -59,14 +59,14 @@ header img {
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-/* ================= INPUT & BUTTON ================= */
+/* ================= INPUTS ================= */
 input {
     padding: 10px;
     margin: 10px;
 }
 
 button {
-    padding: 10px;
+    padding: 10px 15px;
     margin: 10px;
     background: #00ffcc;
     border: none;
@@ -80,7 +80,7 @@ button {
     color: green;
 }
 
-/* ================= PAGE ================= */
+/* ================= DOCUMENT PAGE ================= */
 .page {
     width: 95%;
     background: white;
@@ -113,14 +113,14 @@ footer {
         margin-top: 10px;
     }
 
-    input, button {
-        width: 95%;
-        display: block;
-        margin: 10px auto;
-    }
-
     .container {
         width: 95%;
+    }
+
+    input, button {
+        width: 100%;
+        display: block;
+        margin: 10px 0;
     }
 }
 
@@ -129,15 +129,17 @@ footer {
 
 <body>
 
+<!-- ================= HEADER ================= -->
 <header>
     <div>
         <h1>📄 Iso Yawi Document Converter</h1>
-        <p>DOCX → PDF • Smart Preview System</p>
+        <p>DOCX → PDF • Mobile + Desktop System</p>
     </div>
 
     <img src="images.jfif" alt="Profile">
 </header>
 
+<!-- ================= MAIN ================= -->
 <div class="container">
 
     <h3>Upload Document (.docx)</h3>
@@ -153,6 +155,7 @@ footer {
 
 </div>
 
+<!-- ================= FOOTER ================= -->
 <footer>
     © 2026 Iso Yawi | Papua New Guinea University of Technology  
     <br>
@@ -164,7 +167,7 @@ footer {
 let selectedFile = null;
 let pagesContainer = document.getElementById("pages");
 
-/* ================= HANDLE UPLOAD ================= */
+/* ================= UPLOAD ================= */
 function handleUpload() {
 
     const file = document.getElementById("fileInput").files[0];
@@ -177,7 +180,7 @@ function handleUpload() {
         "✅ Uploaded: " + file.name;
 }
 
-/* ================= PREVIEW ================= */
+/* ================= PREVIEW DOCUMENT ================= */
 async function loadDoc() {
 
     if (!selectedFile) {
@@ -185,42 +188,28 @@ async function loadDoc() {
         return;
     }
 
-    pagesContainer.innerHTML = "⏳ Loading preview...";
+    pagesContainer.innerHTML = "⏳ Rendering document...";
 
     try {
 
         const buffer = await selectedFile.arrayBuffer();
-
         const temp = document.createElement("div");
 
         await docx.renderAsync(buffer, temp);
 
-        if (!temp.innerHTML || temp.innerHTML.trim() === "") {
+        let page = document.createElement("div");
+        page.className = "page";
+        page.innerHTML = temp.innerHTML;
 
-            pagesContainer.innerHTML = `
-                <div class="page">
-                    <p>⚠️ Preview not supported for this document.</p>
-                    <p>Click <b>Export PDF</b> instead.</p>
-                </div>
-            `;
+        pagesContainer.innerHTML = "";
+        pagesContainer.appendChild(page);
 
-        } else {
-
-            let page = document.createElement("div");
-            page.className = "page";
-            page.innerHTML = temp.innerHTML;
-
-            pagesContainer.innerHTML = "";
-            pagesContainer.appendChild(page);
-        }
-
-    } catch (error) {
+    } catch (e) {
 
         pagesContainer.innerHTML = `
             <div class="page">
-                <p style="color:red;">⚠️ Preview failed</p>
-                <p>This document may contain complex formatting or images.</p>
-                <p>Please use Export PDF.</p>
+                <p style="color:red;">⚠️ Cannot render document</p>
+                <p>Please export to PDF instead.</p>
             </div>
         `;
     }
@@ -230,12 +219,12 @@ async function loadDoc() {
 async function exportPDF() {
 
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF();
+    const pdf = new jsPDF("p", "mm", "a4");
 
     let page = document.querySelector(".page");
 
     if (!page) {
-        alert("Preview first before exporting");
+        alert("No document loaded");
         return;
     }
 
@@ -245,11 +234,11 @@ async function exportPDF() {
         width: 180,
         callback: function (doc) {
 
-            doc.setFontSize(25);
             doc.setTextColor(180);
-            doc.text("Iso Yawi Converter", 30, 150, { angle: 45 });
+            doc.setFontSize(25);
+            doc.text("Iso Yawi PDF Converter", 30, 150, { angle: 45 });
 
-            doc.save("Converted.pdf");
+            doc.save("Converted_Document.pdf");
         }
     });
 }
