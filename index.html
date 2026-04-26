@@ -2,19 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Pro Document Scanner System</title>
+<title>Pro Document Converter System</title>
 
-<!-- DOCX RENDERER (images + formatting preserved) -->
+<!-- DOCX RENDER ENGINE -->
 <script src="https://unpkg.com/docx-preview@0.2.0/dist/docx-preview.js"></script>
 
-<!-- PDF GENERATOR -->
+<!-- PDF ENGINE -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
+
 /* ================= GLOBAL ================= */
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: Arial;
     background: #0b0f1a;
     color: white;
 }
@@ -22,10 +23,10 @@ body {
 /* ================= HEADER ================= */
 header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    background: linear-gradient(90deg, #0f172a, #111827);
-    padding: 15px 25px;
+    align-items: center;
+    padding: 15px 20px;
+    background: #111827;
     border-bottom: 2px solid #00ffcc;
 }
 
@@ -38,8 +39,8 @@ header img {
 }
 
 header h1 {
-    font-size: 20px;
     margin: 0;
+    font-size: 18px;
     color: #00ffcc;
 }
 
@@ -49,17 +50,14 @@ header p {
     color: #9ca3af;
 }
 
-/* ================= MAIN CONTAINER ================= */
+/* ================= LAYOUT ================= */
 .container {
-    width: 85%;
+    width: 90%;
     margin: auto;
-    background: #111827;
-    padding: 20px;
-    border-radius: 10px;
     margin-top: 20px;
 }
 
-/* ================= BUTTONS ================= */
+/* ================= CONTROLS ================= */
 input, button {
     padding: 10px;
     margin: 10px;
@@ -72,44 +70,43 @@ button {
     font-weight: bold;
 }
 
-/* ================= PREVIEW ================= */
-#viewer {
+/* ================= PAGES ================= */
+.page {
+    width: 95%;
     background: white;
     color: black;
-    padding: 20px;
-    margin-top: 15px;
-    min-height: 400px;
-    overflow-x: auto;
+    margin: 10px auto;
+    padding: 15px;
     border-radius: 8px;
 }
 
 /* ================= FOOTER ================= */
 footer {
-    margin-top: 30px;
-    padding: 15px;
     text-align: center;
-    background: #0f172a;
+    padding: 15px;
+    margin-top: 20px;
+    background: #111827;
     border-top: 2px solid #00ffcc;
     color: #9ca3af;
     font-size: 13px;
 }
+
 </style>
 </head>
 
 <body>
 
-<!-- ================= HEADER WITH PHOTO ================= -->
+<!-- ================= HEADER ================= -->
 <header>
     <div>
-        <h1>📄 Pro Document Scanner System</h1>
-        <p>Engineering Grade DOCX → PDF Converter</p>
+        <h1>📄 Pro Document Converter System</h1>
+        <p>DOCX → PDF • Page Rendering Engine</p>
     </div>
 
-    <!-- 🔥 YOUR PHOTO HERE -->
-    <img src="your-photo.jpg" alt="Iso Yawi">
+    <img src="your-photo.jpg" alt="Profile">
 </header>
 
-<!-- ================= MAIN UI ================= -->
+<!-- ================= MAIN ================= -->
 <div class="container">
 
     <h3>Upload Document (.docx)</h3>
@@ -118,76 +115,96 @@ footer {
 
     <br>
 
-    <button onclick="loadDocx()">Preview Document</button>
-    <button onclick="exportPDF()">Download PDF</button>
+    <button onclick="loadDoc()">Load Document</button>
+    <button onclick="exportPDF()">Export PDF</button>
 
-    <div id="viewer">Document preview will appear here...</div>
+    <div id="pages"></div>
 
 </div>
 
 <!-- ================= FOOTER ================= -->
 <footer>
-    <p>© 2026 Iso Yawi | Papua New Guinea University of Technology</p>
-    <p>Electrical Engineering • Pro Document Scanner System</p>
+    © 2026 Iso Yawi | Papua New Guinea University of Technology  
+    <br>
+    Department of Electrical Engineering • Document Converter System
 </footer>
 
 <script>
 
-let viewer = document.getElementById("viewer");
+let pagesContainer = document.getElementById("pages");
 
 /* ================= LOAD DOCX ================= */
-async function loadDocx() {
+async function loadDoc() {
+
     const file = document.getElementById("fileInput").files[0];
 
     if (!file) {
-        alert("Please upload a DOCX file");
+        alert("Upload a DOCX file");
         return;
     }
 
     const buffer = await file.arrayBuffer();
 
-    viewer.innerHTML = "";
+    pagesContainer.innerHTML = "";
 
-    await docx.renderAsync(buffer, viewer, null, {
-        inWrapper: true,
-        ignoreWidth: false,
-        ignoreHeight: false
+    const temp = document.createElement("div");
+
+    await docx.renderAsync(buffer, temp, null, {
+        inWrapper: true
     });
+
+    let page = document.createElement("div");
+    page.className = "page";
+    page.innerHTML = temp.innerHTML;
+
+    pagesContainer.appendChild(page);
 }
 
-/* ================= EXPORT PDF WITH WATERMARK ================= */
+/* ================= EXPORT PDF ================= */
 async function exportPDF() {
 
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF("p", "mm", "a4");
 
-    if (!viewer.innerHTML) {
+    let page = document.querySelector(".page");
+
+    if (!page) {
         alert("No document loaded");
         return;
     }
 
-    await pdf.html(viewer, {
+    await pdf.html(page, {
+        x: 10,
+        y: 10,
+        width: 180,
+        html2canvas: { scale: 0.8 },
         callback: function (doc) {
 
-            // 🔥 WATERMARK
+            // ================= WATERMARK =================
             doc.setTextColor(200);
             doc.setFontSize(28);
             doc.text(
                 "Iso Yawi PDF Converter",
-                20,
+                30,
                 150,
                 { angle: 45 }
             );
 
-            doc.save("Pro_Scanned_Document.pdf");
-        },
-        x: 10,
-        y: 10,
-        width: 180
+            doc.save("Converted_Document.pdf");
+        }
     });
 }
 
 </script>
+
+<!-- ================= FOOTER (FIXED DUPLICATION) ================= -->
+<footer>
+    <div>
+        <p>© 2026 Iso Yawi | Papua New Guinea University of Technology</p>
+        <p>Department of Electrical Engineering</p>
+        <p>Building Cool Projects for Students</p>
+    </div>
+</footer>
 
 </body>
 </html>
