@@ -2,28 +2,64 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Iso Yawi PDF Converter</title>
+<title>Pro Document Scanner System</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<!-- DOCX RENDERER (images + formatting preserved) -->
+<script src="https://unpkg.com/docx-preview@0.2.0/dist/docx-preview.js"></script>
+
+<!-- PDF GENERATOR -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
+/* ================= GLOBAL ================= */
 body {
-    font-family: Arial;
+    margin: 0;
+    font-family: Arial, sans-serif;
     background: #0b0f1a;
     color: white;
-    text-align: center;
-    padding: 20px;
 }
 
+/* ================= HEADER ================= */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(90deg, #0f172a, #111827);
+    padding: 15px 25px;
+    border-bottom: 2px solid #00ffcc;
+}
+
+header img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid #00ffcc;
+    object-fit: cover;
+}
+
+header h1 {
+    font-size: 20px;
+    margin: 0;
+    color: #00ffcc;
+}
+
+header p {
+    margin: 0;
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* ================= MAIN CONTAINER ================= */
 .container {
-    width: 60%;
+    width: 85%;
     margin: auto;
     background: #111827;
     padding: 20px;
     border-radius: 10px;
+    margin-top: 20px;
 }
 
+/* ================= BUTTONS ================= */
 input, button {
     padding: 10px;
     margin: 10px;
@@ -33,41 +69,74 @@ button {
     background: #00ffcc;
     border: none;
     cursor: pointer;
+    font-weight: bold;
 }
 
-#output {
-    text-align: left;
-    white-space: pre-wrap;
-    background: #0f172a;
-    padding: 10px;
-    margin-top: 10px;
+/* ================= PREVIEW ================= */
+#viewer {
+    background: white;
+    color: black;
+    padding: 20px;
+    margin-top: 15px;
+    min-height: 400px;
+    overflow-x: auto;
     border-radius: 8px;
+}
+
+/* ================= FOOTER ================= */
+footer {
+    margin-top: 30px;
+    padding: 15px;
+    text-align: center;
+    background: #0f172a;
+    border-top: 2px solid #00ffcc;
+    color: #9ca3af;
+    font-size: 13px;
 }
 </style>
 </head>
 
 <body>
 
+<!-- ================= HEADER WITH PHOTO ================= -->
+<header>
+    <div>
+        <h1>📄 Pro Document Scanner System</h1>
+        <p>Engineering Grade DOCX → PDF Converter</p>
+    </div>
+
+    <!-- 🔥 YOUR PHOTO HERE -->
+    <img src="your-photo.jpg" alt="Iso Yawi">
+</header>
+
+<!-- ================= MAIN UI ================= -->
 <div class="container">
 
-<h2>📄 Iso Yawi PDF Converter</h2>
+    <h3>Upload Document (.docx)</h3>
 
-<input type="file" id="fileInput" accept=".docx">
-<br>
+    <input type="file" id="fileInput" accept=".docx">
 
-<button onclick="convertFile()">Convert to PDF</button>
+    <br>
 
-<button onclick="downloadPDF()">Download PDF</button>
+    <button onclick="loadDocx()">Preview Document</button>
+    <button onclick="exportPDF()">Download PDF</button>
 
-<div id="output">Upload a Word document to preview...</div>
+    <div id="viewer">Document preview will appear here...</div>
 
 </div>
 
-<script>
-let extractedText = "";
-let pdfDoc;
+<!-- ================= FOOTER ================= -->
+<footer>
+    <p>© 2026 Iso Yawi | Papua New Guinea University of Technology</p>
+    <p>Electrical Engineering • Pro Document Scanner System</p>
+</footer>
 
-async function convertFile() {
+<script>
+
+let viewer = document.getElementById("viewer");
+
+/* ================= LOAD DOCX ================= */
+async function loadDocx() {
     const file = document.getElementById("fileInput").files[0];
 
     if (!file) {
@@ -75,50 +144,49 @@ async function convertFile() {
         return;
     }
 
-    const arrayBuffer = await file.arrayBuffer();
+    const buffer = await file.arrayBuffer();
 
-    mammoth.extractRawText({ arrayBuffer: arrayBuffer })
-        .then(function(result) {
-            extractedText = result.value;
-            document.getElementById("output").innerText = extractedText;
-        })
-        .catch(function(err) {
-            alert("Error reading file");
-        });
+    viewer.innerHTML = "";
+
+    await docx.renderAsync(buffer, viewer, null, {
+        inWrapper: true,
+        ignoreWidth: false,
+        ignoreHeight: false
+    });
 }
 
-// CREATE PDF WITH WATERMARK
-function downloadPDF() {
-    if (!extractedText) {
-        alert("No content to convert");
+/* ================= EXPORT PDF WITH WATERMARK ================= */
+async function exportPDF() {
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    if (!viewer.innerHTML) {
+        alert("No document loaded");
         return;
     }
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF();
+    await pdf.html(viewer, {
+        callback: function (doc) {
 
-    const lines = pdf.splitTextToSize(extractedText, 180);
+            // 🔥 WATERMARK
+            doc.setTextColor(200);
+            doc.setFontSize(28);
+            doc.text(
+                "Iso Yawi PDF Converter",
+                20,
+                150,
+                { angle: 45 }
+            );
 
-    let y = 20;
-
-    // MAIN TEXT
-    pdf.setFontSize(12);
-    pdf.text(lines, 10, y);
-
-    // WATERMARK FUNCTION
-    pdf.setTextColor(200, 200, 200);
-    pdf.setFontSize(30);
-    pdf.setFont("helvetica", "bold");
-
-    pdf.text(
-        "Iso Yawi PDF Converter",
-        20,
-        150,
-        { angle: 45, opacity: 0.2 }
-    );
-
-    pdf.save("Iso_Yawi_Converted.pdf");
+            doc.save("Pro_Scanned_Document.pdf");
+        },
+        x: 10,
+        y: 10,
+        width: 180
+    });
 }
+
 </script>
 
 </body>
