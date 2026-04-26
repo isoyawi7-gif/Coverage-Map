@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telecom Coverage Planner</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #0b0f1a;
+    color: white;
+    text-align: center;
+}
+
+h1 { margin: 10px; }
+
+#controls {
+    padding: 10px;
+    background: #111827;
+}
+
+canvas {
+    border: 2px solid #00ffcc;
+    margin: 10px;
+    background: #0a0f1f;
+    cursor: crosshair;
+}
+
+footer {
+    background: #111827;
+    color: #9ca3af;
+    padding: 15px;
+    font-size: 14px;
+    border-top: 1px solid #00ffcc;
+    margin-top: 10px;
+}
+
+footer p {
+    margin: 5px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Telecom Coverage Map</h1>
+
+<div id="controls">
+    Power: <input type="range" id="power" min="1" max="100" value="50">
+    Frequency (MHz): <input type="range" id="freq" min="700" max="2600" value="900">
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth - 40;
+canvas.height = window.innerHeight - 150;
+
+let towers = [];
+let selected = null;
+
+const gridSize = 20;
+
+// SIGNAL MODEL
+function getSignal(dist, power, freq) {
+    if (dist === 0) return power;
+    return power / (dist * dist) * (1000 / freq);
+}
+
+// DRAW GRID
+function drawGrid() {
+    ctx.strokeStyle = "#1f2937";
+    for (let x = 0; x < canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+}
+
+// DRAW HEATMAP
+function drawHeatmap() {
+    const power = document.getElementById("power").value;
+    const freq = document.getElementById("freq").value;
+
+    for (let x = 0; x < canvas.width; x += gridSize) {
+        for (let y = 0; y < canvas.height; y += gridSize) {
+
+            let totalSignal = 0;
+
+            towers.forEach(t => {
+                let d = Math.hypot(t.x - x, t.y - y);
+                totalSignal += getSignal(d, power, freq);
+            });
+
+            let color = "transparent";
+
+            if (totalSignal > 0.05) color = "rgba(0,255,0,0.4)";
+            else if (totalSignal > 0.02) color = "rgba(255,255,0,0.4)";
+            else if (totalSignal > 0.005) color = "rgba(255,0,0,0.4)";
+
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, gridSize, gridSize);
+        }
+    }
+}
+
+// DRAW TOWERS
+function drawTowers() {
+    towers.forEach(t => {
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = "#00ffcc";
+        ctx.fill();
+    });
+}
+
+// MAIN DRAW
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
+    drawHeatmap();
+    drawTowers();
+}
+
+// ADD TOWER
+canvas.addEventListener("click", (e) => {
+    towers.push({ x: e.offsetX, y: e.offsetY });
+    draw();
+});
+
+// SELECT TOWER
+canvas.addEventListener("mousedown", (e) => {
+    towers.forEach(t => {
+        if (Math.hypot(t.x - e.offsetX, t.y - e.offsetY) < 10) {
+            selected = t;
+        }
+    });
+});
+
+// DRAG
+canvas.addEventListener("mousemove", (e) => {
+    if (selected) {
+        selected.x = e.offsetX;
+        selected.y = e.offsetY;
+        draw();
+    }
+});
+
+// RELEASE
+canvas.addEventListener("mouseup", () => selected = null);
+
+// UPDATE ON SLIDER CHANGE
+document.getElementById("power").oninput = draw;
+document.getElementById("freq").oninput = draw;
+
+draw();
+</script>
+
+<footer>
+    <p>© 2026 Iso Yawi | Papua New Guinea University of Technology | Electrical Engineering</p>
+    <p>Telecom Coverage Planner Project</p>
+</footer>
+
+</body>
+</html>
