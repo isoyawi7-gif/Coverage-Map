@@ -48,17 +48,14 @@ input, button, select {
 <header>
     <h1>ISO YAWI</h1>
     <h3>Building Cool Products</h3>
-    <div style="font-size:13px;">📧 Email | 📱 Phone | PNG University of Technology</div>
+    <div style="font-size:13px;">📧 Email:iso.yawi111@gmail.com  | 📱 Phone | PNG University of Technology</div>
 </header>
 
-<h2>📅 Custom Photo Calendar</h2>
+<h2>📅 Custom Photo Calendar V1</h2>
 
 <input type="file" id="upload"><br>
-
 <input type="number" id="year" value="2026"><br>
-
 <input type="text" id="name" placeholder="Enter Name"><br>
-
 <input type="text" id="quote" placeholder="Enter Quote / Scripture"><br>
 
 <label>Date Color:</label>
@@ -82,8 +79,10 @@ input, button, select {
     <option value="top">Calendar Below Image</option>
 </select><br>
 
+<!-- BUTTONS -->
 <button onclick="generate()">Generate</button>
 <button onclick="download()">Download</button>
+<button onclick="refresh()">Refresh</button>
 
 <br>
 
@@ -96,11 +95,13 @@ const ctx = canvas.getContext("2d");
 
 let img = new Image();
 
+/* IMAGE UPLOAD */
 document.getElementById("upload").onchange = function(e){
     const file = e.target.files[0];
     img.src = URL.createObjectURL(file);
 };
 
+/* ================= GENERATE ================= */
 function generate(){
 
     const year = parseInt(document.getElementById("year").value);
@@ -120,12 +121,12 @@ function generate(){
 
     let startY = 0;
 
-    // IMAGE LOGIC (IMPORTANT FIX)
+    // IMAGE
     if(img.src){
 
         if(layout === "overlay"){
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            startY = 200; // overlay starts lower on image
+            startY = 200;
         } else {
             ctx.drawImage(img, 0, 0, canvas.width, 500);
             startY = 750;
@@ -134,7 +135,7 @@ function generate(){
         startY = 750;
     }
 
-    // TEXT STYLE (GLOBAL)
+    // TEXT STYLE
     ctx.fillStyle = dateColor;
 
     ctx.font = "bold 40px " + dateFont;
@@ -165,7 +166,7 @@ function generate(){
     drawWatermark();
 }
 
-// MONTH DRAWING
+/* ================= MONTH ================= */
 function drawMonth(month, year, x, y, color, font){
 
     let monthIndex = new Date(Date.parse(month + " 1, " + year)).getMonth();
@@ -197,7 +198,7 @@ function drawMonth(month, year, x, y, color, font){
     }
 }
 
-// TEXT WRAP
+/* ================= TEXT WRAP ================= */
 function wrapText(text, x, y, maxWidth, lineHeight) {
 
     if(!text) return;
@@ -222,7 +223,7 @@ function wrapText(text, x, y, maxWidth, lineHeight) {
     ctx.fillText(line, x, y);
 }
 
-// WATERMARK
+/* ================= WATERMARK (FIXED) ================= */
 function drawWatermark(){
 
     ctx.save();
@@ -231,7 +232,7 @@ function drawWatermark(){
     ctx.textAlign = "center";
 
     ctx.fillText(
-        "ISO YAWI • Product Creator • PNG",
+        "ISO YAWI | Product Creator",
         canvas.width/2,
         canvas.height - 20
     );
@@ -239,12 +240,23 @@ function drawWatermark(){
     ctx.restore();
 }
 
-// DOWNLOAD
+/* ================= DOWNLOAD ================= */
 function download(){
     const link = document.createElement("a");
     link.download = "calendar.png";
     link.href = canvas.toDataURL();
     link.click();
+}
+
+/* ================= REFRESH ================= */
+function refresh(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    document.getElementById("year").value = 2026;
+    document.getElementById("name").value = "";
+    document.getElementById("quote").value = "";
+    document.getElementById("upload").value = "";
 }
 
 </script>
