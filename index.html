@@ -32,33 +32,21 @@ input, button, select {
 </head>
 
 <body>
-    <header style="
-    background: linear-gradient(135deg, #0a0f1c, #111827);
-    color: #00ffcc;
-    padding: 25px 15px;
-    text-align: center;
-    border-bottom: 2px solid #00ffcc;
+
+<header style="
+background: linear-gradient(135deg, #0a0f1c, #111827);
+color: #00ffcc;
+padding: 25px 15px;
+text-align: center;
+border-bottom: 2px solid #00ffcc;
 ">
 
-    <h1 style="margin:0; font-size:26px;">
-        ISO YAWI
-    </h1>
+<h1 style="margin:0;">ISO YAWI</h1>
+<h3 style="margin:5px 0; color:#fff;">Building Cool Products</h3>
 
-    <h3 style="margin:5px 0; font-weight:normal; color:#ffffff;">
-        Building Cool Products
-    </h3>
-
-    <p style="margin:5px 0; font-size:14px; color:#cccccc;">
-        Custom software • Engineering tools • Web systems • Student projects
-    </p>
-
-    <div style="margin-top:10px; font-size:13px; color:#00ffcc;">
-        📧 isoyawi7@gmail.com | 📱 NA | 🌐 PNG University of Technology
-    </div>
-
-    <p style="margin-top:10px; font-size:12px; color:#aaa;">
-        “If you need a system, I can build it online for you”
-    </p>
+<div style="margin-top:10px; font-size:13px;">
+📧 Email | 📱 Phone | PNG University of Technology
+</div>
 
 </header>
 
@@ -72,9 +60,10 @@ input, button, select {
 
 <input type="text" id="quote" placeholder="Enter Quote / Scripture"><br>
 
-<label>Calendar Font Color:</label>
+<label>Date Color:</label>
 <input type="color" id="dateColor" value="#000000"><br>
-<label>Calendar Font Style:</label>
+
+<label>Date Font:</label>
 <select id="dateFont">
     <option value="Arial">Arial</option>
     <option value="Verdana">Verdana</option>
@@ -83,7 +72,7 @@ input, button, select {
     <option value="Tahoma">Tahoma</option>
 </select><br>
 
-<label>Background Color:</label>
+<label>Background:</label>
 <input type="color" id="bgcolor" value="#ffffff"><br>
 
 <label>Layout:</label>
@@ -96,6 +85,7 @@ input, button, select {
 <button onclick="download()">Download</button>
 
 <br>
+
 <canvas id="canvas" width="1000" height="1400"></canvas>
 
 <script>
@@ -118,39 +108,34 @@ function generate(){
     const bgColor = document.getElementById("bgcolor").value;
     const layout = document.getElementById("layout").value;
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
     const dateColor = document.getElementById("dateColor").value;
     const dateFont = document.getElementById("dateFont").value;
 
-    drawWatermark();
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // === BACKGROUND ===
+    // BACKGROUND
     ctx.fillStyle = bgColor;
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    // === IMAGE FULL CANVAS ===
+    // IMAGE (FULL CANVAS)
     if(img.src){
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, 500);
     }
 
-    // === TEXT STYLE ===
-    ctx.fillStyle = "black";
-
     // TITLE
+    ctx.fillStyle = "black";
     ctx.font = "bold 40px Arial";
-    ctx.fillText(name || "My Calendar", 320, 60);
+    ctx.fillText(name || "My Calendar", 320, 560);
 
-    // YEAR
     ctx.font = "24px Arial";
-    ctx.fillText("Year " + year, 420, 100);
+    ctx.fillText("Year " + year, 420, 600);
 
     // QUOTE
     ctx.font = "16px Arial";
-    wrapText(quote, 200, 130, 600, 20);
+    wrapText(quote, 200, 630, 600, 20);
 
-    // === MONTHS POSITION ===
-    let startY = (layout === "overlay") ? 200 : 500;
+    // START POSITION
+    let startY = (layout === "overlay") ? 700 : 750;
 
     const months = [
         "January","February","March","April","May","June",
@@ -165,34 +150,27 @@ function generate(){
         let x = 50 + col * 300;
         let y = startY + row * 170;
 
-        ctx.fillStyle = dateColor;
-        ctx.font = "12px " + dateFont;
-
-        ctx.fillText(day, x + j*30, y + 35 + i*18);
-
-        ctx.font = "bold 14px " + dateFont;
-ctx.fillStyle = dateColor;
-ctx.fillText(month, x, y);
+        drawMonth(month, year, x, y, dateColor, dateFont);
     });
+
+    drawWatermark();
 }
 
-// DRAW MONTH
-function drawMonth(month, year, x, y){
+function drawMonth(month, year, x, y, color, font){
 
-    const monthIndex = new Date(Date.parse(month +" 1, "+year)).getMonth();
+    const monthIndex = new Date(year, new Date(month +" 1").getMonth(), 1).getMonth();
     const firstDay = new Date(year, monthIndex, 1).getDay();
-    const days = new Date(year, monthIndex+1, 0).getDate();
+    const days = new Date(year, monthIndex + 1, 0).getDate();
 
-    ctx.fillStyle = "black";
-
-    ctx.font = "bold 14px Arial";
+    ctx.fillStyle = color;
+    ctx.font = "bold 14px " + font;
     ctx.fillText(month, x, y);
 
     const weekDays = ["S","M","T","W","T","F","S"];
-    ctx.font = "12px Arial";
+    ctx.font = "12px " + font;
 
     weekDays.forEach((d,i)=>{
-        ctx.fillText(d, x + i*30, y + 15);
+        ctx.fillText(d, x + i*30, y + 20);
     });
 
     let day = 1;
@@ -203,13 +181,13 @@ function drawMonth(month, year, x, y){
             if(i===0 && j<firstDay) continue;
             if(day>days) return;
 
-            ctx.fillText(day, x + j*30, y + 35 + i*18);
+            ctx.fillText(day, x + j*30, y + 40 + i*18);
             day++;
         }
     }
 }
 
-// WRAP TEXT
+// TEXT WRAP
 function wrapText(text, x, y, maxWidth, lineHeight) {
 
     if(!text) return;
@@ -218,10 +196,11 @@ function wrapText(text, x, y, maxWidth, lineHeight) {
     let line = '';
 
     for(let n = 0; n < words.length; n++) {
-        let testLine = line + words[n] + ' ';
-        let metrics = ctx.measureText(testLine);
 
-        if (metrics.width > maxWidth && n > 0) {
+        let testLine = line + words[n] + ' ';
+        let width = ctx.measureText(testLine).width;
+
+        if (width > maxWidth && n > 0) {
             ctx.fillText(line, x, y);
             line = words[n] + ' ';
             y += lineHeight;
@@ -229,24 +208,23 @@ function wrapText(text, x, y, maxWidth, lineHeight) {
             line = testLine;
         }
     }
+
     ctx.fillText(line, x, y);
 }
 
-//Watermark
-
+// WATERMARK
 function drawWatermark() {
 
     ctx.save();
-
-    // Style watermark
-    ctx.font = "16px Arial";
-    ctx.fillStyle = "rgba(0,0,0,0.35)"; // transparent black
+    ctx.font = "14px Arial";
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
     ctx.textAlign = "center";
 
-    // Bottom center position
-   ctx.font = "bold 14px Arial";
-ctx.fillStyle = "rgba(0,0,0,0.25)";
-ctx.fillText("ISO YAWI • Product Creator • PNG", canvas.width/2, canvas.height-25);
+    ctx.fillText(
+        "ISO YAWI • Product Creator • PNG",
+        canvas.width/2,
+        canvas.height - 20
+    );
 
     ctx.restore();
 }
@@ -260,11 +238,6 @@ function download(){
 }
 
 </script>
-
-<footer style="margin-top:20px; padding:15px; background:#111; color:#00ffcc; text-align:center;">
-    <strong>ISO YAWI</strong> | School of Electrical Engineering | PNG University of Technology<br>
-    <span style="color:#ccc;">Building cool projects for students</span>
-</footer>
 
 </body>
 </html>
