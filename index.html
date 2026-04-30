@@ -9,6 +9,18 @@ body {
     font-family: Arial;
     text-align: center;
     background:#eef;
+    margin: 0;
+}
+
+header {
+    width: 100%;
+    margin: 0;
+    padding: 25px 15px;
+    box-sizing: border-box;
+    background: linear-gradient(135deg, #0a0f1c, #111827);
+    color: #00ffcc;
+    text-align: center;
+    border-bottom: 2px solid #00ffcc;
 }
 
 canvas {
@@ -33,21 +45,10 @@ input, button, select {
 
 <body>
 
-<header style="
-background: linear-gradient(135deg, #0a0f1c, #111827);
-color: #00ffcc;
-padding: 25px 15px;
-text-align: center;
-border-bottom: 2px solid #00ffcc;
-">
-
-<h1 style="margin:0;">ISO YAWI</h1>
-<h3 style="margin:5px 0; color:#fff;">Building Cool Products</h3>
-
-<div style="margin-top:10px; font-size:13px;">
-📧 Email | 📱 Phone | PNG University of Technology
-</div>
-
+<header>
+    <h1>ISO YAWI</h1>
+    <h3>Building Cool Products</h3>
+    <div style="font-size:13px;">📧 Email | 📱 Phone | PNG University of Technology</div>
 </header>
 
 <h2>📅 Custom Photo Calendar</h2>
@@ -117,25 +118,33 @@ function generate(){
     ctx.fillStyle = bgColor;
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    // IMAGE (FULL CANVAS)
+    let startY = 0;
+
+    // IMAGE LOGIC (IMPORTANT FIX)
     if(img.src){
-        ctx.drawImage(img, 0, 0, canvas.width, 500);
+
+        if(layout === "overlay"){
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            startY = 200; // overlay starts lower on image
+        } else {
+            ctx.drawImage(img, 0, 0, canvas.width, 500);
+            startY = 750;
+        }
+    } else {
+        startY = 750;
     }
 
-    // TITLE
-    ctx.fillStyle = "black";
-    ctx.font = "bold 40px Arial";
-    ctx.fillText(name || "My Calendar", 320, 560);
+    // TEXT STYLE (GLOBAL)
+    ctx.fillStyle = dateColor;
 
-    ctx.font = "24px Arial";
-    ctx.fillText("Year " + year, 420, 600);
+    ctx.font = "bold 40px " + dateFont;
+    ctx.fillText(name || "My Calendar", 300, 80);
 
-    // QUOTE
-    ctx.font = "16px Arial";
-    wrapText(quote, 200, 630, 600, 20);
+    ctx.font = "24px " + dateFont;
+    ctx.fillText("Year " + year, 400, 120);
 
-    // START POSITION
-    let startY = (layout === "overlay") ? 700 : 750;
+    ctx.font = "16px " + dateFont;
+    wrapText(quote, 200, 160, 600, 20);
 
     const months = [
         "January","February","March","April","May","June",
@@ -156,11 +165,12 @@ function generate(){
     drawWatermark();
 }
 
+// MONTH DRAWING
 function drawMonth(month, year, x, y, color, font){
 
-    const monthIndex = new Date(year, new Date(month +" 1").getMonth(), 1).getMonth();
-    const firstDay = new Date(year, monthIndex, 1).getDay();
-    const days = new Date(year, monthIndex + 1, 0).getDate();
+    let monthIndex = new Date(Date.parse(month + " 1, " + year)).getMonth();
+    let firstDay = new Date(year, monthIndex, 1).getDay();
+    let days = new Date(year, monthIndex + 1, 0).getDate();
 
     ctx.fillStyle = color;
     ctx.font = "bold 14px " + font;
@@ -195,12 +205,12 @@ function wrapText(text, x, y, maxWidth, lineHeight) {
     let words = text.split(' ');
     let line = '';
 
-    for(let n = 0; n < words.length; n++) {
+    for(let n=0;n<words.length;n++){
 
         let testLine = line + words[n] + ' ';
         let width = ctx.measureText(testLine).width;
 
-        if (width > maxWidth && n > 0) {
+        if(width > maxWidth && n > 0){
             ctx.fillText(line, x, y);
             line = words[n] + ' ';
             y += lineHeight;
@@ -213,7 +223,7 @@ function wrapText(text, x, y, maxWidth, lineHeight) {
 }
 
 // WATERMARK
-function drawWatermark() {
+function drawWatermark(){
 
     ctx.save();
     ctx.font = "14px Arial";
@@ -238,6 +248,9 @@ function download(){
 }
 
 </script>
-
+<footer style="margin-top:20px; padding:15px; background:#0a0f1c; color:#00ffcc; text-align:center;">
+    ISO YAWI ⚡ School of Electrical Engineering ⚡ PNG University of Technology<br>
+    <em style="color:#aaa;">Building cool projects for students</em>
+</footer>
 </body>
 </html>
