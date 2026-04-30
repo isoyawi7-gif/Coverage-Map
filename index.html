@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <title>Universal Document Viewer</title>
 
-<script src="https://unpkg.com/docx-preview@0.2.0/dist/docx-preview.js"></script>
+<!-- FIXED: correct loading -->
+<script src="https://unpkg.com/docx-preview@0.2.0/dist/docx-preview.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
@@ -50,6 +51,7 @@ button {
     border: 1px solid #ddd;
     min-height: 300px;
     background: white;
+    overflow: auto;
 }
 
 img {
@@ -59,6 +61,7 @@ img {
 iframe {
     width: 100%;
     height: 500px;
+    border: none;
 }
 
 footer {
@@ -76,13 +79,13 @@ footer {
 
 <header>
     <h2>📄 Universal Document Viewer</h2>
-    <p>Reliable Preview System (NOT broken conversion)</p>
+    <p>Reliable Preview System</p>
 </header>
 
 <div class="container">
 
-    <input type="file" id="fileInput" onchange="previewFile()">
-
+    <input type="file" id="fileInput">
+    <button onclick="previewFile()">Preview</button>
     <button onclick="exportPDF()">Export Visible View</button>
 
     <div id="preview">Upload a file</div>
@@ -100,11 +103,15 @@ let currentFile = null;
 /* ================= PREVIEW ================= */
 async function previewFile() {
 
-    const file = document.getElementById("fileInput").files[0];
+    const fileInput = document.getElementById("fileInput");
     const preview = document.getElementById("preview");
 
-    if (!file) return;
+    if (!fileInput.files.length) {
+        preview.innerHTML = "⚠️ Please select a file first";
+        return;
+    }
 
+    const file = fileInput.files[0];
     currentFile = file;
 
     const ext = file.name.split('.').pop().toLowerCase();
@@ -113,30 +120,30 @@ async function previewFile() {
 
     try {
 
-        // TEXT FILE
+        // TEXT
         if (ext === "txt") {
             preview.innerHTML = `<pre>${await file.text()}</pre>`;
         }
 
-        // IMAGE FILE
+        // IMAGE
         else if (["png","jpg","jpeg","gif"].includes(ext)) {
             preview.innerHTML = `<img src="${URL.createObjectURL(file)}">`;
         }
 
-        // PDF FILE
+        // PDF
         else if (ext === "pdf") {
             preview.innerHTML = `<iframe src="${URL.createObjectURL(file)}"></iframe>`;
         }
 
-        // DOCX FILE (BEST EFFORT)
+        // DOCX (FIXED)
         else if (ext === "docx") {
 
             const buffer = await file.arrayBuffer();
-            const temp = document.createElement("div");
 
-            await docx.renderAsync(buffer, temp);
+            preview.innerHTML = ""; // clear first
 
-            preview.innerHTML = temp.innerHTML || "⚠️ DOCX cannot be fully rendered";
+            await window.docx.renderAsync(buffer, preview);
+
         }
 
         else {
@@ -144,6 +151,7 @@ async function previewFile() {
         }
 
     } catch (err) {
+        console.error(err);
         preview.innerHTML = "⚠️ Error loading file";
     }
 }
@@ -156,7 +164,7 @@ async function exportPDF() {
 
     const preview = document.getElementById("preview");
 
-    if (!preview.innerHTML) {
+    if (!preview.innerHTML.trim()) {
         alert("Nothing to export");
         return;
     }
@@ -165,10 +173,11 @@ async function exportPDF() {
         x: 10,
         y: 10,
         width: 180,
+        windowWidth: preview.scrollWidth,
         callback: function(doc) {
 
-            doc.setFontSize(20);
-            doc.text("Iso Yawi Converter", 20, 150, { angle: 45 });
+            doc.setFontSize(14);
+            doc.text("Generated Preview", 20, 10);
 
             doc.save("output.pdf");
         }
