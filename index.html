@@ -1,190 +1,145 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Universal Document Viewer</title>
-
-<!-- FIXED: correct loading -->
-<script src="https://unpkg.com/docx-preview@0.2.0/dist/docx-preview.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+<title>Custom Calendar Generator</title>
 <style>
+body { font-family: Arial; text-align: center; background:#eef; }
+canvas { border:1px solid #333; margin-top:20px; }
 
-body {
-    margin: 0;
-    font-family: Arial;
-    background: #eef2f7;
-    color: #111;
+/* ================= MOBILE RESPONSIVE ================= */
+@media (max-width: 768px) {
+
+    body {
+        font-size: 14px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+
+    .controls {
+        width: 95%;
+        padding: 10px;
+    }
+
+    input, button {
+        width: 90%;
+        margin: 5px 0;
+        font-size: 14px;
+    }
+
+    canvas {
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    footer {
+        font-size: 12px;
+        padding: 10px;
+    }
 }
-
-header {
-    background: white;
-    padding: 15px;
-    text-align: center;
-    border-bottom: 2px solid #00ffcc;
-}
-
-.container {
-    width: 85%;
-    margin: auto;
-    margin-top: 20px;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-}
-
-input, button {
-    padding: 10px;
-    margin: 10px;
-}
-
-button {
-    background: #00ffcc;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-#preview {
-    margin-top: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    min-height: 300px;
-    background: white;
-    overflow: auto;
-}
-
-img {
-    max-width: 100%;
-}
-
-iframe {
-    width: 100%;
-    height: 500px;
-    border: none;
-}
-
-footer {
-    text-align: center;
-    padding: 15px;
-    margin-top: 20px;
-    background: white;
-    border-top: 2px solid #00ffcc;
-}
-
 </style>
 </head>
 
 <body>
 
-<header>
-    <h2>📄 Universal Document Viewer</h2>
-    <p>Reliable Preview System</p>
-</header>
+<h2> Custom Photo Calendar</h2>
 
-<div class="container">
+<input type="file" id="upload"><br><br>
+<input type="number" id="year" value="2026"><br><br>
 
-    <input type="file" id="fileInput">
-    <button onclick="previewFile()">Preview</button>
-    <button onclick="exportPDF()">Export Visible View</button>
+<button onclick="generate()">Generate</button>
+<button onclick="download()">Download</button>
 
-    <div id="preview">Upload a file</div>
-
-</div>
-
-<footer>
-    © 2026 Iso Yawi | Electrical Engineering Project
-</footer>
+<br>
+<canvas id="canvas" width="800" height="600"></canvas>
 
 <script>
 
-let currentFile = null;
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-/* ================= PREVIEW ================= */
-async function previewFile() {
+let img = null;
 
-    const fileInput = document.getElementById("fileInput");
-    const preview = document.getElementById("preview");
+document.getElementById("upload").onchange = function(e){
+    const file = e.target.files[0];
+    img = new Image();
+    img.src = URL.createObjectURL(file);
+};
 
-    if (!fileInput.files.length) {
-        preview.innerHTML = "⚠️ Please select a file first";
-        return;
+function generate(){
+
+    const year = document.getElementById("year").value;
+
+    // Clear
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // Draw image
+    if(img){
+        ctx.drawImage(img,0,0,800,400);
     }
 
-    const file = fileInput.files[0];
-    currentFile = file;
+    // Title
+    ctx.fillStyle = "black";
+    ctx.font = "30px Arial";
+    ctx.fillText("Calendar " + year, 280, 450);
 
-    const ext = file.name.split('.').pop().toLowerCase();
+    // Draw simple months (demo)
+    let months = ["Jan","Feb","Mar","Apr","May","Jun"];
 
-    preview.innerHTML = "Loading...";
+    ctx.font = "16px Arial";
 
-    try {
-
-        // TEXT
-        if (ext === "txt") {
-            preview.innerHTML = `<pre>${await file.text()}</pre>`;
-        }
-
-        // IMAGE
-        else if (["png","jpg","jpeg","gif"].includes(ext)) {
-            preview.innerHTML = `<img src="${URL.createObjectURL(file)}">`;
-        }
-
-        // PDF
-        else if (ext === "pdf") {
-            preview.innerHTML = `<iframe src="${URL.createObjectURL(file)}"></iframe>`;
-        }
-
-        // DOCX (FIXED)
-        else if (ext === "docx") {
-
-            const buffer = await file.arrayBuffer();
-
-            preview.innerHTML = ""; // clear first
-
-            await window.docx.renderAsync(buffer, preview);
-
-        }
-
-        else {
-            preview.innerHTML = "⚠️ File type not supported";
-        }
-
-    } catch (err) {
-        console.error(err);
-        preview.innerHTML = "⚠️ Error loading file";
-    }
-}
-
-/* ================= EXPORT ================= */
-async function exportPDF() {
-
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF();
-
-    const preview = document.getElementById("preview");
-
-    if (!preview.innerHTML.trim()) {
-        alert("Nothing to export");
-        return;
-    }
-
-    await pdf.html(preview, {
-        x: 10,
-        y: 10,
-        width: 180,
-        windowWidth: preview.scrollWidth,
-        callback: function(doc) {
-
-            doc.setFontSize(14);
-            doc.text("Generated Preview", 20, 10);
-
-            doc.save("output.pdf");
-        }
+    months.forEach((m,i)=>{
+        ctx.fillText(m, 50 + i*120, 500);
     });
 }
 
+function download(){
+    const link = document.createElement("a");
+    link.download = "calendar.png";
+    link.href = canvas.toDataURL();
+    link.click();
+}
+
+// ================= TOUCH SUPPORT =================
+let lastTouchX = 0;
+let lastTouchY = 0;
+
+canvas.addEventListener("touchstart", (e) => {
+    dragging = true;
+    lastTouchX = e.touches[0].clientX;
+    lastTouchY = e.touches[0].clientY;
+});
+
+canvas.addEventListener("touchend", () => {
+    dragging = false;
+});
+
+canvas.addEventListener("touchmove", (e) => {
+
+    if (!dragging) return;
+
+    let touch = e.touches[0];
+
+    let dx = touch.clientX - lastTouchX;
+    let dy = touch.clientY - lastTouchY;
+
+    posX += dx;
+    posY += dy;
+
+    lastTouchX = touch.clientX;
+    lastTouchY = touch.clientY;
+
+    generate();
+
+});
+
 </script>
+
+<footer style="margin-top:20px; padding:15px; background:#111; color:#00ffcc; text-align:center; font-size:14px;">
+    <strong>ISO YAWI</strong> | School of Electrical Engineering | PNG University of Technology<br>
+    <span style="color:#ccc;">Building cool projects for students</span>
+</footer>
 
 </body>
 </html>
