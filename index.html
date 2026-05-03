@@ -1,305 +1,385 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Custom Calendar Generator</title>
+<title>Advanced CV Builder System</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
+
+html { scroll-behavior: smooth; }
+
 body {
+    margin: 0;
     font-family: Arial;
-    text-align: center;
-    background:#eef;
-    margin: 0;
+    background: none;
+    overflow-x: hidden;
 }
 
+/* HEADER */
 header {
-    width: 100%;
-    margin: 0;
-    padding: 25px 15px;
-    box-sizing: border-box;
-    background: linear-gradient(135deg, #0a0f1c, #111827);
-    color: #00ffcc;
+    padding: 15px;
     text-align: center;
-    border-bottom: 2px solid #00ffcc;
+    background: rgb(0, 36, 78);
+    color: white;
 }
 
-canvas {
-    border:1px solid #333;
-    margin-top:20px;
-    max-width:100%;
+/* FORM CONTAINER */
+.form-container {
+    width: 90%;
+    max-width: 1000px;
+    margin: auto;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border-radius: 10px;
 }
 
-input, button, select {
-    padding:8px;
-    margin:5px;
+/* INPUTS */
+input, textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    border: none;
+    box-sizing: border-box;
 }
 
+/* BUTTON */
+button {
+    padding: 10px;
+    background: #00ffcc;
+    border: none;
+    margin-top: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* BACKGROUND */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: url("Bckgrnd.png") center/cover no-repeat;
+    opacity: 1;
+    z-index: -1;
+}
+
+/* CV WRAPPER */
+#cvWrapper {
+    width: 900px;
+    max-width: 95%;
+    margin: auto;
+    background: white;
+    color: black;
+    padding: 20px;
+    position: relative;
+}
+
+/* CV LAYOUT */
+#cv {
+    display: flex;
+}
+
+.left {
+    width: 35%;
+    background: #1f2937;
+    color: white;
+    padding: 15px;
+}
+
+.right {
+    width: 65%;
+    padding: 15px;
+}
+
+/* BOX */
+.box {
+    background: #f3f4f6;
+    padding: 10px;
+    margin: 5px 0;
+}
+
+/* WATERMARK */
+#watermark {
+    position: absolute;
+    bottom: 12px;
+    right: 15px;
+    font-size: 12px;
+    opacity: 0.4;
+}
+
+/* FOOTER */
+footer {
+    text-align: center;
+    padding: 15px;
+    background: #111827;
+    color: #00ffcc;
+}
+
+/* MOBILE */
 @media (max-width: 768px) {
-    input, button, select {
-        width: 90%;
+    #cv {
+        flex-direction: column;
+    }
+
+    .left, .right {
+        width: 100%;
+    }
+
+    #cvWrapper {
+        width: 100%;
+    }
+
+    button {
+        width: 100%;
     }
 }
+
 </style>
 </head>
 
 <body>
 
 <header>
-    <h1>ISO YAWI</h1>
-    <h3>Building Cool Products</h3>
-    <div style="font-size:13px;">
-        📧 Email: iso.yawi111@gmail.com | 📱 Phone: NA | PNG University of Technology
-    </div>
+ <h1>ISO YAWI</h1>
+ <h3>Building Cool Products</h3>
+ <div style="font-size:13px;">
+ 📧 Email: iso.yawi111@gmail.com | 📱 Phone: NA | PNG University of Technology
+ </div>
+ <h2>ADVANCED CV BUILDER SYSTEM</h2>
 </header>
 
-<h2>📅 Custom Photo Calendar V1</h2>
+<div class="form-container">
 
-<input type="file" id="upload"><br>
-<input type="number" id="year" value="2026"><br>
-<input type="text" id="name" placeholder="Enter Name"><br>
-<input type="text" id="quote" placeholder="Enter Quote / Scripture"><br>
+<input id="name" placeholder="Full Name">
+<input id="phone" placeholder="Phone Number">
+<input id="email" placeholder="Email">
+<input id="address" placeholder="Residential Address">
 
-<label>Date Color:</label>
-<input type="color" id="dateColor" value="#000000"><br>
+<h3>Theme Color</h3>
+<input type="color" id="colorPicker">
 
-<label>Date Font:</label>
-<select id="dateFont">
-    <option value="Arial">Arial</option>
-    <option value="Verdana">Verdana</option>
-    <option value="Georgia">Georgia</option>
-    <option value="Courier New">Courier New</option>
-    <option value="Tahoma">Tahoma</option>
-</select><br>
+<!-- CERTIFICATIONS (FIXED POSITION) -->
+<h3>Certifications</h3>
+<textarea id="certifications" placeholder="Enter certifications (one per line)"></textarea>
 
-<label>Background:</label>
-<input type="color" id="bgcolor" value="#ffffff"><br>
+<h3>Jobs</h3>
+<div id="jobBox"></div>
+<button type="button" onclick="addJob()">Add Job</button>
 
-<label>Layout:</label>
-<select id="layout">
-    <option value="overlay">Overlay on Image</option>
-    <option value="top">Calendar Below Image</option>
-</select><br>
+<h3>Education</h3>
+<div id="eduBox"></div>
+<button type="button" onclick="addEdu()">Add Education</button>
 
-<button onclick="generate()">Generate</button>
-<button onclick="download()">Download</button>
-<button onclick="refresh()">Refresh</button>
+<h3>Interests</h3>
+<textarea id="interests" placeholder="Enter interests (one per line)"></textarea>
 
-<br>
+<h3>Referees</h3>
+<div id="refBox"></div>
+<button type="button" onclick="addRef()">Add Referee</button>
 
-<canvas id="canvas" width="1000" height="1400"></canvas>
+<h3>Key Achievements</h3>
+<textarea id="achievements"></textarea>
+
+<button type="button" onclick="generateCV()">Generate CV</button>
+<button type="button" onclick="downloadPDF()">Download PDF</button>
+
+</div>
+
+<!-- CV -->
+<div id="cvWrapper">
+
+<div id="cv">
+
+<div class="left">
+<h3>SUMMARY</h3>
+<p id="summary"></p>
+
+<h3>KEY ACHIEVEMENTS</h3>
+<p id="achOut"></p>
+
+<h3>CERTIFICATIONS</h3>
+<p id="certOut"></p>
+</div>
+
+<div id="watermark">Powered by IsoYawi | Product Creator</div>
+
+<div class="right">
+
+<h1 id="outName"></h1>
+<p id="contact"></p>
+<hr>
+
+<h3>WORK EXPERIENCE</h3>
+<div id="jobOut"></div>
+
+<h3>EDUCATION</h3>
+<div id="eduOut"></div>
+
+<h3>INTERESTS</h3>
+<div id="interestOut"></div>
+
+<h3>REFEREES</h3>
+<div id="refOut"></div>
+
+</div>
+
+</div>
+
+</div>
 
 <script>
 
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+let ready = false;
+const get = id => document.getElementById(id);
 
-let img = new Image();
+/* VALIDATION */
+function sectionValid(section){
+let boxes = document.querySelectorAll(section + " .box");
+if(boxes.length === 0) return false;
 
-document.getElementById("upload").onchange = function(e){
-    const file = e.target.files[0];
-    img.src = URL.createObjectURL(file);
-};
-
-/* ================= IMAGE QUALITY FIX ================= */
-function drawImageProper(img, layout){
-
-    const cw = canvas.width;
-    const ch = canvas.height;
-
-    const ratio = img.width / img.height;
-    const canvasRatio = cw / ch;
-
-    let w, h, x, y;
-
-    if(layout === "overlay"){
-
-        // COVER FULL CANVAS (NO STRETCH)
-        if(ratio > canvasRatio){
-            h = ch;
-            w = h * ratio;
-        } else {
-            w = cw;
-            h = w / ratio;
-        }
-
-        x = (cw - w) / 2;
-        y = (ch - h) / 2;
-
-        ctx.drawImage(img, x, y, w, h);
-
-    } else {
-
-        // TOP MODE
-        const maxH = 500;
-
-        h = maxH;
-        w = h * ratio;
-
-        x = (cw - w) / 2;
-        y = 0;
-
-        ctx.drawImage(img, x, y, w, h);
-    }
+for(let b of boxes){
+let inputs = b.querySelectorAll("input, textarea");
+for(let i of inputs){
+if(!i.value.trim()) return false;
+}
+}
+return true;
 }
 
-/* ================= GENERATE ================= */
-function generate(){
+function validateInputs(){
 
-    const year = document.getElementById("year").value;
-    const name = document.getElementById("name").value;
-    const quote = document.getElementById("quote").value;
-    const bgColor = document.getElementById("bgcolor").value;
-    const layout = document.getElementById("layout").value;
-
-    const dateColor = document.getElementById("dateColor").value;
-    const dateFont = document.getElementById("dateFont").value;
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    // BACKGROUND
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    let startY = 750;
-
-    if(img.src){
-        drawImageProper(img, layout);
-
-        if(layout === "overlay"){
-            startY = 200;
-        } else {
-            startY = 750;
-        }
-    }
-
-    // TEXT
-    ctx.fillStyle = dateColor;
-
-    ctx.font = "bold 40px " + dateFont;
-    ctx.fillText(name || "My Calendar", 300, 80);
-
-    ctx.font = "24px " + dateFont;
-    ctx.fillText("Year " + year, 400, 120);
-
-    ctx.font = "16px " + dateFont;
-    wrapText(quote, 200, 160, 600, 20);
-
-    const months = [
-        "January","February","March","April","May","June",
-        "July","August","September","October","November","December"
-    ];
-
-    months.forEach((month, index)=>{
-
-        let col = index % 3;
-        let row = Math.floor(index / 3);
-
-        let x = 50 + col * 300;
-        let y = startY + row * 170;
-
-        drawMonth(month, year, x, y, dateColor, dateFont);
-    });
-
-    drawWatermark();
+if(!get("name").value || !get("phone").value || !get("email").value || !get("address").value){
+alert("Fill all personal details!");
+return false;
 }
 
-/* ================= MONTH ================= */
-function drawMonth(month, year, x, y, color, font){
-
-    let monthIndex = new Date(Date.parse(month + " 1 " + year)).getMonth();
-    let firstDay = new Date(year, monthIndex, 1).getDay();
-    let days = new Date(year, monthIndex + 1, 0).getDate();
-
-    ctx.fillStyle = color;
-    ctx.font = "bold 14px " + font;
-    ctx.fillText(month, x, y);
-
-    const weekDays = ["S","M","T","W","T","F","S"];
-    ctx.font = "12px " + font;
-
-    weekDays.forEach((d,i)=>{
-        ctx.fillText(d, x + i*30, y + 20);
-    });
-
-    let day = 1;
-
-    for(let i=0;i<6;i++){
-        for(let j=0;j<7;j++){
-
-            if(i===0 && j<firstDay) continue;
-            if(day>days) return;
-
-            ctx.fillText(day, x + j*30, y + 40 + i*18);
-            day++;
-        }
-    }
+if(!get("achievements").value.trim()){
+alert("Enter achievements!");
+return false;
 }
 
-/* ================= TEXT WRAP ================= */
-function wrapText(text, x, y, maxWidth, lineHeight){
-
-    if(!text) return;
-
-    let words = text.split(' ');
-    let line = '';
-
-    for(let n=0;n<words.length;n++){
-
-        let testLine = line + words[n] + ' ';
-        let width = ctx.measureText(testLine).width;
-
-        if(width > maxWidth && n > 0){
-            ctx.fillText(line, x, y);
-            line = words[n] + ' ';
-            y += lineHeight;
-        } else {
-            line = testLine;
-        }
-    }
-
-    ctx.fillText(line, x, y);
+return true;
 }
 
-/* ================= WATERMARK ================= */
-function drawWatermark(){
-
-    ctx.save();
-    ctx.font = "14px Arial";
-    ctx.fillStyle = "rgba(0,0,0,0.35)";
-    ctx.textAlign = "center";
-
-    ctx.fillText(
-        "ISO YAWI | Product Creator",
-        canvas.width/2,
-        canvas.height - 20
-    );
-
-    ctx.restore();
+/* ADD JOB */
+function addJob(){
+let d=document.createElement("div");
+d.className="box";
+d.innerHTML=`
+<input placeholder="Company">
+<input placeholder="Position">
+<input placeholder="Start Date">
+<input placeholder="End Date">
+<textarea placeholder="Responsibilities"></textarea>
+<button type="button" onclick="this.parentElement.remove()">Remove Job</button>
+`;
+get("jobBox").appendChild(d);
 }
 
-/* ================= DOWNLOAD ================= */
-function download(){
-    const link = document.createElement("a");
-    link.download = "calendar.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+/* ADD EDU */
+function addEdu(){
+let d=document.createElement("div");
+d.className="box";
+d.innerHTML=`
+<input placeholder="Institution">
+<input placeholder="Start Year">
+<input placeholder="End Year">
+<input placeholder="Qualification">
+<button type="button" onclick="this.parentElement.remove()">Remove Education</button>
+`;
+get("eduBox").appendChild(d);
 }
 
-/* ================= REFRESH ================= */
-function refresh(){
+/* ADD REF */
+function addRef(){
+let d=document.createElement("div");
+d.className="box";
+d.innerHTML=`
+<input placeholder="Name">
+<input placeholder="Position">
+<input placeholder="Company">
+<input type="email" placeholder="Email">
+<input type="tel" placeholder="Phone">
+<button type="button" onclick="this.parentElement.remove()">Remove Referee</button>
+`;
+get("refBox").appendChild(d);
+}
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+/* GENERATE */
+function generateCV(){
 
-    document.getElementById("year").value = 2026;
-    document.getElementById("name").value = "";
-    document.getElementById("quote").value = "";
-    document.getElementById("upload").value = "";
+if(!validateInputs()) return;
+
+get("outName").innerText = get("name").value;
+
+get("contact").innerText =
+get("phone").value + " | " +
+get("email").value + " | " +
+get("address").value;
+
+/* JOBS */
+let j="";
+document.querySelectorAll("#jobBox .box").forEach(x=>{
+let i=x.querySelectorAll("input,textarea");
+j+=`<p><b>${i[1].value}</b> - ${i[0].value}<br>${i[2].value} → ${i[3].value}<br>${i[4].value}</p>`;
+});
+get("jobOut").innerHTML=j;
+
+/* EDU */
+let e="";
+document.querySelectorAll("#eduBox .box").forEach(x=>{
+let i=x.querySelectorAll("input");
+e+=`<p><b>${i[0].value}</b><br>${i[1].value} - ${i[2].value}<br>${i[3].value}</p>`;
+});
+get("eduOut").innerHTML=e;
+
+/* INTERESTS (ONE LINE FIX) */
+get("interestOut").innerText =
+get("interests").value
+.split("\n")
+.filter(x => x.trim())
+.join(" • ");
+
+/* CERTIFICATIONS */
+get("certOut").innerText =
+get("certifications").value
+.split("\n")
+.filter(x => x.trim())
+.join(" • ");
+
+/* ACHIEVEMENTS */
+get("achOut").innerText =
+get("achievements").value
+.split("\n")
+.map(x=>"• "+x)
+.join("\n");
+
+/* SUMMARY */
+get("summary").innerText =
+get("name").value + " is a results-driven professional with strong engineering and leadership experience.";
+
+ready = true;
+get("cvWrapper").scrollIntoView({behavior:"smooth"});
+alert("CV Generated");
+}
+
+/* PDF */
+function downloadPDF(){
+if(!ready){
+alert("Generate first");
+return;
+}
+html2pdf().from(get("cvWrapper")).save();
 }
 
 </script>
-<footer style="margin-top:20px; padding:15px; background:#0a0f1c; color:#00ffcc; text-align:center;">
-    ISO YAWI ⚡ School of Electrical Engineering ⚡ PNG University of Technology<br>
-    <em style="color:#aaa;">Building cool projects for students</em>
+
+<footer>
+ISO YAWI ⚡ School of Electrical Engineering ⚡ PNG University of Technology
 </footer>
 
 </body>
